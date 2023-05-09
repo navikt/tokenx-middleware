@@ -1,0 +1,13 @@
+# Dependency directories
+node_modules/
+
+# TypeScript output directory
+lib/
+
+# IDE - IntelliJ
+.idea/
+*.iml
+
+# System Files
+.DS_Store
+Thumbs.db
