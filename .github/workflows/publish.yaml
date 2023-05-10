@@ -23,4 +23,4 @@ jobs:
       - name: Publish
         run: yarn publish
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Use GITHUB_TOKEN for GPR
+          NODE_AUTH_TOKEN: ${{ secrets.NAV_GITHUB_TOKEN }} # Use token with write:packages and read:packages in the @navikt namespace in GPR
