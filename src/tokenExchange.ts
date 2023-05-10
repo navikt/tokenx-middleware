@@ -1,4 +1,5 @@
 import { Client, Issuer, TokenSet } from "openid-client";
+import { Logger } from "./logger";
 
 let tokenxClient: Client;
 

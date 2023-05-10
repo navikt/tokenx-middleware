@@ -2,7 +2,7 @@
 node_modules/
 
 # TypeScript output directory
-lib/
+dist/
 
 # IDE - IntelliJ
 .idea/

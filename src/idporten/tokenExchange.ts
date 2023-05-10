@@ -1,6 +1,7 @@
 import { verifiserIdportenSubjectToken } from "./idporten.js";
 import { RequestHandler, Request } from "express";
 import { tokenExchange } from "../tokenExchange";
+import { Logger } from "../logger";
 
 export function idportenTokenExchangeMiddleware(
   audience: string
