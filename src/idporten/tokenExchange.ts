@@ -1,18 +1,16 @@
-import { verifiserIdportenSubjectToken } from "./idporten.js";
+import { validateIdportenSubjectToken } from "./idporten.js";
 import { RequestHandler, Request } from "express";
 import { tokenExchange } from "../tokenExchange.js";
 import { Logger } from "../logger.js";
 
-export function idportenTokenExchangeMiddleware(
-  audience: string
-): RequestHandler {
+export function idportenTokenXMiddleware(audience: string): RequestHandler {
   return async (req, _res, next) => {
     await exchangeIdportenSubjectToken(req, audience);
     next();
   };
 }
 
-async function exchangeIdportenSubjectToken(
+export async function exchangeIdportenSubjectToken(
   request: Request,
   audience: string,
   logger: Logger = console
@@ -24,7 +22,7 @@ async function exchangeIdportenSubjectToken(
   }
 
   try {
-    await verifiserIdportenSubjectToken(subjectToken);
+    await validateIdportenSubjectToken(subjectToken);
 
     let tokenSet = await tokenExchange(subjectToken, audience);
 

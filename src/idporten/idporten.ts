@@ -13,21 +13,18 @@ const acceptedSigningAlgorithm = "RS256";
 let idportenIssuer: Issuer;
 let _remoteJWKSet: GetKeyFunction<JWSHeaderParameters, FlattenedJWSInput>;
 
-async function initIdporten() {
+async function initIdportenIssuer() {
   idportenIssuer = await Issuer.discover(process.env.IDPORTEN_WELL_KNOWN_URL!);
   _remoteJWKSet = createRemoteJWKSet(
     new URL(idportenIssuer.metadata.jwks_uri!)
   );
 }
 
-export async function verifiserIdportenSubjectToken(
-  token: string | Uint8Array
-) {
+export async function validateIdportenSubjectToken(token: string | Uint8Array) {
   if (!idportenIssuer || !_remoteJWKSet) {
-    await initIdporten();
+    await initIdportenIssuer();
   }
 
-  // @ts-ignore
   const { payload } = await jwtVerify(token, _remoteJWKSet, {
     algorithms: [acceptedSigningAlgorithm],
     issuer: idportenIssuer.metadata.issuer,

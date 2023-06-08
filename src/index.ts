@@ -1,1 +1,1 @@
-export { idportenTokenExchangeMiddleware } from "./idporten/tokenExchange.js";
+export { idportenTokenXMiddleware } from "./idporten/tokenExchange.js";
