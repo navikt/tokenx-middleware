@@ -1,7 +1,7 @@
-import { validateIdportenSubjectToken } from "./idporten.js";
 import { RequestHandler, Request } from "express";
-import { tokenExchange } from "../tokenExchange.js";
-import { Logger } from "../logger.js";
+import { Logger } from "./logger";
+import { tokenExchange } from "./tokenExchange";
+import { validateIdportenSubjectToken } from "./idporten";
 
 export function idportenTokenXMiddleware(audience: string): RequestHandler {
   return async (req, _res, next) => {
@@ -10,7 +10,7 @@ export function idportenTokenXMiddleware(audience: string): RequestHandler {
   };
 }
 
-export async function exchangeIdportenSubjectToken(
+async function exchangeIdportenSubjectToken(
   request: Request,
   audience: string,
   logger: Logger = console

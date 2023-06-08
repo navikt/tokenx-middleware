@@ -1,1 +1,2 @@
-export { idportenTokenXMiddleware } from "./idporten/tokenExchange.js";
+export { idportenTokenXMiddleware } from "./express.js";
+export { exchangeIdportenSubjectToken } from "./next.js";
