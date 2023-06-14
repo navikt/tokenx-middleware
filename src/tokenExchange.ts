@@ -4,9 +4,9 @@ import { Logger } from './logger.js';
 let tokenxClient: Client;
 
 const {
-    TOKEN_X_WELL_KNOWN_URL = 'ENV_VAR_UNDEFINED',
-    TOKEN_X_CLIENT_ID = 'ENV_VAR_UNDEFINED',
-    TOKEN_X_PRIVATE_JWK = 'ENV_VAR_UNDEFINED',
+    TOKEN_X_WELL_KNOWN_URL = 'UNDEFINED',
+    TOKEN_X_CLIENT_ID = 'UNDEFINED',
+    TOKEN_X_PRIVATE_JWK = 'UNDEFINED',
 } = process.env;
 
 export async function initTokenXClient() {

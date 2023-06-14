@@ -1,16 +1,19 @@
+import { IncomingMessage } from 'http';
 import { Logger } from './logger.js';
-import { tokenExchange } from './tokenExchange.js';
 import { validateIdportenSubjectToken } from './idporten.js';
+import { tokenExchange } from './tokenExchange.js';
 
 export async function exchangeIdportenSubjectToken(
-    request: Request,
+    request: IncomingMessage,
     audience: string,
     logger: Logger = console
-): Promise<void> {
-    const subjectToken = request.headers.get('authorization')?.split(' ')[1];
+): Promise<string | undefined> {
+    const authorizationHeader = request.headers['authorization'];
+    const subjectToken = authorizationHeader?.split(' ')[1];
 
+    // return the original header if no subject token is found
     if (!subjectToken) {
-        return;
+        return authorizationHeader;
     }
 
     try {
@@ -19,14 +22,14 @@ export async function exchangeIdportenSubjectToken(
         const tokenSet = await tokenExchange(subjectToken, audience);
 
         if (!tokenSet?.expired() && tokenSet?.access_token) {
-            request.headers.set('authorization', `Bearer ${tokenSet.access_token}`);
+            return `Bearer ${tokenSet.access_token}`;
         }
     } catch (error) {
         // Handle the error appropriately, e.g., log it or return an error response
         if (error instanceof Error) {
             logger.error('Error during token exchange:', error);
         } else {
-            logger.error('Error during token exchange', 'Unknow reason');
+            logger.error('Error during token exchange', 'Unknown reason');
         }
     }
 }
