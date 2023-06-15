@@ -46,3 +46,9 @@ spec:
 - The environment variables `IDPORTEN_WELL_KNOWN_URL` and `IDPORTEN_CLIENT_ID` are avaliable at runtime. This happens automatically if you [enable idporten](https://doc.nais.io/security/auth/idporten/?h=idporten#runtime-variables-credentials) in your NAIS app.
 - The environment variables `TOKEN_X_CLIENT_ID`, `TOKEN_X_PRIVATE_JWK` and `TOKEN_X_WELL_KNOWN_URL` are avaliable at runtime. [Enable TokenX](https://doc.nais.io/security/auth/tokenx/?h=tokenx) for these to be set automatically. 
 
+## Releasing new versions
+1. Commit all your changes to `main`
+2. Run `yarn version --<patch|minor|major>` (following semantic versioning) to create a versioning commit.
+3. Push the versioning commit to `main`.  Take note of the version number `<x.y.z>`
+3. Go to Github -> Releases -> Draft new release
+4. Enter `v<x.y.z>` as the tag, give the release a name and description, and click release.
