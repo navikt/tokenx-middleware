@@ -4,6 +4,7 @@
  */
 
 export default {
+  setupFiles: ['<rootDir>/.jest/setEnvVars.js'],
   testEnvironment: 'node',
   preset: 'ts-jest',
 

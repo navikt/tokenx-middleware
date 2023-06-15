@@ -1,8 +1,8 @@
 import { Issuer } from 'openid-client';
 import { createRemoteJWKSet, FlattenedJWSInput, JWSHeaderParameters, jwtVerify } from 'jose';
-import { GetKeyFunction } from 'jose/dist/types/types';
+import { GetKeyFunction, JWTPayload } from 'jose/dist/types/types';
 
-const acceptedAcrLevel = 'Level4';
+const acceptedAcrLevels = ['Level4', 'idporten-loa-high'];
 const acceptedSigningAlgorithm = 'RS256';
 
 let idportenIssuer: Issuer;
@@ -30,11 +30,15 @@ export async function validateIdportenSubjectToken(token: string | Uint8Array) {
         issuer: idportenIssuer.metadata.issuer,
     });
 
+    validatePayload(payload);    
+}
+
+export function validatePayload(payload: JWTPayload) {
     if (payload.client_id !== IDPORTEN_CLIENT_ID) {
         throw new Error('Invalid client ID in token');
     }
 
-    if (payload.acr !== acceptedAcrLevel) {
+    if (!acceptedAcrLevels.includes(payload.acr as string)) {
         throw new Error('Invalid ACR-level');
     }
 }
