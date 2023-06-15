@@ -3,21 +3,22 @@ import { Logger } from './logger.js';
 
 let tokenxClient: Client;
 
-const {
-    TOKEN_X_WELL_KNOWN_URL = 'UNDEFINED',
-    TOKEN_X_CLIENT_ID = 'UNDEFINED',
-    TOKEN_X_PRIVATE_JWK = 'UNDEFINED',
-} = process.env;
+const { TOKEN_X_WELL_KNOWN_URL, TOKEN_X_CLIENT_ID, TOKEN_X_PRIVATE_JWK } = process.env;
 
-export async function initTokenXClient() {
-    const tokenxIssuer = await Issuer.discover(TOKEN_X_WELL_KNOWN_URL);
+if (!TOKEN_X_WELL_KNOWN_URL || !TOKEN_X_CLIENT_ID || !TOKEN_X_PRIVATE_JWK) {
+    throw new Error('One or more of the required environment variables are undefined');
+}
+
+export async function initTokenXClient(logger: Logger = console) {
+    logger.debug(`Initializing TokenX client from ${TOKEN_X_WELL_KNOWN_URL}`);
+    const tokenxIssuer = await Issuer.discover(TOKEN_X_WELL_KNOWN_URL as string);
     tokenxClient = new tokenxIssuer.Client(
         {
-            client_id: TOKEN_X_CLIENT_ID,
+            client_id: TOKEN_X_CLIENT_ID as string,
             token_endpoint_auth_method: 'private_key_jwt',
         },
         {
-            keys: [JSON.parse(TOKEN_X_PRIVATE_JWK)],
+            keys: [JSON.parse(TOKEN_X_PRIVATE_JWK as string)],
         }
     );
 }
@@ -28,7 +29,7 @@ export async function tokenExchange(
     logger: Logger = console
 ): Promise<TokenSet | null> {
     if (!tokenxClient) {
-        await initTokenXClient();
+        await initTokenXClient(logger);
     }
     return tokenxClient
         ?.grant(

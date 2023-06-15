@@ -3,17 +3,22 @@ import { Logger } from './logger.js';
 import { validateIdportenSubjectToken } from './idporten.js';
 import { tokenExchange } from './tokenExchange.js';
 
+/**
+ * Exchanges subject token found in the authorization header with a access token for a given audience.
+ * If the subkect token is not found,
+ */
 export async function exchangeIdportenSubjectToken(
     request: IncomingMessage,
     audience: string,
     logger: Logger = console
-): Promise<string | undefined> {
+): Promise<string | null> {
     const authorizationHeader = request.headers['authorization'];
     const subjectToken = authorizationHeader?.split(' ')[1];
 
     // return the original header if no subject token is found
     if (!subjectToken) {
-        return authorizationHeader;
+        logger.debug('Cannot exhange subject token because it was not found.');
+        return null;
     }
 
     try {
@@ -22,6 +27,7 @@ export async function exchangeIdportenSubjectToken(
         const tokenSet = await tokenExchange(subjectToken, audience);
 
         if (!tokenSet?.expired() && tokenSet?.access_token) {
+            logger.debug('Returning valid access token');
             return `Bearer ${tokenSet.access_token}`;
         }
     } catch (error) {
@@ -32,4 +38,5 @@ export async function exchangeIdportenSubjectToken(
             logger.error('Error during token exchange', 'Unknown reason');
         }
     }
+    return null;
 }
