@@ -5,7 +5,7 @@ import { tokenExchange } from './tokenExchange.js';
 
 /**
  * Exchanges subject token found in the authorization header with a access token for a given audience.
- * If the subkect token is not found,
+ * If the subject token is not found, or the token exchange failed, `null` will be returned.
  */
 export async function exchangeIdportenSubjectToken(
     request: IncomingMessage,
