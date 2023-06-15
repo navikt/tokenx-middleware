@@ -6,13 +6,20 @@ const acceptedAcrLevels = ['Level4', 'idporten-loa-high'];
 const acceptedSigningAlgorithm = 'RS256';
 
 let idportenIssuer: Issuer;
-let _remoteJWKSet: GetKeyFunction<JWSHeaderParameters, FlattenedJWSInput>;
 
-const { IDPORTEN_WELL_KNOWN_URL = 'ENV_VAR_UNDEFINED', IDPORTEN_CLIENT_ID = 'ENV_VAR_UNDEFINED' } =
-    process.env;
+type RemoteJWKSet = GetKeyFunction<JWSHeaderParameters, FlattenedJWSInput>;
+let _remoteJWKSet: RemoteJWKSet;
+
+const { IDPORTEN_WELL_KNOWN_URL, IDPORTEN_CLIENT_ID } = process.env;
+
+if (!IDPORTEN_WELL_KNOWN_URL || !IDPORTEN_CLIENT_ID) {
+    throw new Error(
+        'IDPORTEN_WELL_KNOWN_URL or IDPORTEN_CLIENT_ID is not defined in environment variables.'
+    );
+}
 
 async function initIdportenIssuer() {
-    idportenIssuer = await Issuer.discover(IDPORTEN_WELL_KNOWN_URL);
+    idportenIssuer = await Issuer.discover(IDPORTEN_WELL_KNOWN_URL as string);
     if (idportenIssuer.metadata.jwks_uri) {
         _remoteJWKSet = createRemoteJWKSet(new URL(idportenIssuer.metadata.jwks_uri));
     } else {
@@ -20,17 +27,25 @@ async function initIdportenIssuer() {
     }
 }
 
+export async function validateToken(
+    token: string | Uint8Array,
+    idportenIssuer: Issuer,
+    keystore: RemoteJWKSet
+) {
+    const { payload } = await jwtVerify(token, keystore, {
+        algorithms: [acceptedSigningAlgorithm],
+        issuer: idportenIssuer.metadata.issuer,
+    });
+
+    validatePayload(payload);
+}
+
 export async function validateIdportenSubjectToken(token: string | Uint8Array) {
     if (!idportenIssuer || !_remoteJWKSet) {
         await initIdportenIssuer();
     }
 
-    const { payload } = await jwtVerify(token, _remoteJWKSet, {
-        algorithms: [acceptedSigningAlgorithm],
-        issuer: idportenIssuer.metadata.issuer,
-    });
-
-    validatePayload(payload);    
+    await validateToken(token, idportenIssuer, _remoteJWKSet);
 }
 
 export function validatePayload(payload: JWTPayload) {
