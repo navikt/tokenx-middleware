@@ -13,7 +13,7 @@ const acceptedSigningAlgorithm = 'RS256';
 let idportenIssuer: Issuer;
 
 type RemoteJWKSet = GetKeyFunction<JWSHeaderParameters, FlattenedJWSInput>;
-let _remoteJWKSet: RemoteJWKSet;
+let signingKeys: RemoteJWKSet;
 
 const { IDPORTEN_WELL_KNOWN_URL, IDPORTEN_CLIENT_ID } = process.env;
 
@@ -23,34 +23,47 @@ if (!IDPORTEN_WELL_KNOWN_URL || !IDPORTEN_CLIENT_ID) {
     );
 }
 
-async function initIdportenIssuer() {
-    idportenIssuer = await Issuer.discover(IDPORTEN_WELL_KNOWN_URL as string);
-    if (idportenIssuer.metadata.jwks_uri) {
-        _remoteJWKSet = createRemoteJWKSet(new URL(idportenIssuer.metadata.jwks_uri));
-    } else {
-        throw Error('idportenIssuer.metadata.jwks_uri not found');
+async function fetchIssuer() {
+    const issuerUrl = process.env.IDPORTEN_WELL_KNOWN_URL;
+
+    if (!idportenIssuer) {
+        idportenIssuer = await Issuer.discover(issuerUrl as string);
     }
+    return idportenIssuer;
+}
+
+async function fetchSigningKeys() {
+    const issuer = await fetchIssuer();
+    if (!signingKeys)
+        signingKeys = createRemoteJWKSet(new URL(issuer.metadata.jwks_uri as string), {
+            cooldownDuration: 86400000, // 1 dag
+        });
+    return signingKeys;
+}
+
+export async function validateIdportenSubjectToken(token: string | Uint8Array) {
+    await fetchIssuer().catch((e) => {
+        throw Error(`Contact with ID-Porten on url ${IDPORTEN_WELL_KNOWN_URL} failed: ${e}`);
+    });
+
+    await fetchSigningKeys().catch((e) => {
+        throw Error(`Error in ID-porten metadata document: ${e}`);
+    });
+
+    await validateToken(token, idportenIssuer, signingKeys);
 }
 
 export async function validateToken(
     token: string | Uint8Array,
     idportenIssuer: Issuer,
-    keystore: RemoteJWKSet
+    signingKeys: RemoteJWKSet
 ) {
-    const { payload } = await jwtVerify(token, keystore, {
+    const { payload } = await jwtVerify(token, signingKeys, {
         algorithms: [acceptedSigningAlgorithm],
         issuer: idportenIssuer.metadata.issuer,
     });
 
     validatePayload(payload);
-}
-
-export async function validateIdportenSubjectToken(token: string | Uint8Array) {
-    if (!idportenIssuer || !_remoteJWKSet) {
-        await initIdportenIssuer();
-    }
-
-    await validateToken(token, idportenIssuer, _remoteJWKSet);
 }
 
 export function validatePayload(payload: JWTPayload) {

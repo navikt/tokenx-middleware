@@ -12,8 +12,7 @@ export async function exchangeIdportenSubjectToken(
     audience?: string,
     logger: Logger = console
 ): Promise<string | null> {
-    const authorizationHeader = request.headers['authorization'];
-    const subjectToken = authorizationHeader?.split(' ')[1];
+    const subjectToken = getAuthorizationToken(request);
 
     // return the original header if no subject token is found
     if (!subjectToken) {
@@ -39,4 +38,8 @@ export async function exchangeIdportenSubjectToken(
         }
     }
     return null;
+}
+
+export function getAuthorizationToken(request: IncomingMessage) {
+    return request.headers['authorization']?.split(' ')[1];
 }
