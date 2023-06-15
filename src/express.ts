@@ -1,6 +1,6 @@
 import { RequestHandler, Request } from 'express';
 import { Logger } from './logger.js';
-import { tokenExchange } from './tokenExchange.js';
+import { exchangeToken } from './exchangeToken';
 import { validateIdportenSubjectToken } from './idporten.js';
 
 export function idportenTokenXMiddleware(audience: string): RequestHandler {
@@ -24,7 +24,7 @@ async function exchangeIdportenSubjectToken(
     try {
         await validateIdportenSubjectToken(subjectToken);
 
-        const tokenSet = await tokenExchange(subjectToken, audience);
+        const tokenSet = await exchangeToken(subjectToken, audience);
 
         if (!tokenSet?.expired() && tokenSet?.access_token) {
             request.headers['authorization'] = `Bearer ${tokenSet.access_token}`;

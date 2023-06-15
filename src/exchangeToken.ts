@@ -23,14 +23,20 @@ export async function initTokenXClient(logger: Logger = console) {
     );
 }
 
-export async function tokenExchange(
+export async function exchangeToken(
     token: string,
-    audience: string,
+    audience?: string,
     logger: Logger = console
 ): Promise<TokenSet | null> {
+    if (!audience) {
+        logger.error('Audience is required do perform token exchange, but was undefined.');
+        return null;
+    }
+
     if (!tokenxClient) {
         await initTokenXClient(logger);
     }
+
     return tokenxClient
         ?.grant(
             {
@@ -49,7 +55,7 @@ export async function tokenExchange(
             }
         )
         .catch((err: Error) => {
-            logger.error('Noe gikk galt med token exchange', err);
+            logger.error('Token exchange failed', err);
             return null;
         });
 }

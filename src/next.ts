@@ -1,7 +1,7 @@
 import { IncomingMessage } from 'http';
 import { Logger } from './logger.js';
 import { validateIdportenSubjectToken } from './idporten.js';
-import { tokenExchange } from './tokenExchange.js';
+import { exchangeToken } from './exchangeToken';
 
 /**
  * Exchanges subject token found in the authorization header with a access token for a given audience.
@@ -9,7 +9,7 @@ import { tokenExchange } from './tokenExchange.js';
  */
 export async function exchangeIdportenSubjectToken(
     request: IncomingMessage,
-    audience: string,
+    audience?: string,
     logger: Logger = console
 ): Promise<string | null> {
     const authorizationHeader = request.headers['authorization'];
@@ -24,7 +24,7 @@ export async function exchangeIdportenSubjectToken(
     try {
         await validateIdportenSubjectToken(subjectToken);
 
-        const tokenSet = await tokenExchange(subjectToken, audience);
+        const tokenSet = await exchangeToken(subjectToken, audience);
 
         if (!tokenSet?.expired() && tokenSet?.access_token) {
             logger.debug('Returning valid access token');
