@@ -1,6 +1,11 @@
 import { Issuer } from 'openid-client';
-import { createRemoteJWKSet, FlattenedJWSInput, JWSHeaderParameters, jwtVerify } from 'jose';
-import { GetKeyFunction, JWTPayload } from 'jose/dist/types/types';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
+import {
+    FlattenedJWSInput,
+    GetKeyFunction,
+    JWSHeaderParameters,
+    JWTPayload,
+} from 'jose/dist/types/types';
 
 const acceptedAcrLevels = ['Level4', 'idporten-loa-high'];
 const acceptedSigningAlgorithm = 'RS256';
