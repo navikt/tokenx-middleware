@@ -1,5 +1,4 @@
 import 'jest';
-
 import { validatePayload } from '../src/idporten';
 
 describe('Payload validation', () => {
