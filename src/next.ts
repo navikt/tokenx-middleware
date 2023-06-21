@@ -1,45 +1,29 @@
-import { IncomingMessage } from 'http';
-import { Logger } from './logger.js';
-import { validateIdportenSubjectToken } from './idporten.js';
-import { exchangeToken } from './exchangeToken';
+import { validateIdportenToken } from '@navikt/next-auth-wonderwall';
+import { extractSubjectToken, getAuthorizationHeader } from './header-utils';
+import { NextApiRequest, NextApiResponse } from 'next';
+import { Logger } from './logger';
 
-/**
- * Exchanges subject token found in the authorization header with a access token for a given audience.
- * If the subject token is not found, or the token exchange failed, `null` will be returned.
- */
-export async function exchangeIdportenSubjectToken(
-    request: IncomingMessage,
-    audience?: string,
-    logger: Logger = console
-): Promise<string | null> {
-    const subjectToken = getAuthorizationToken(request);
+type ApiHandler = (req: NextApiRequest, res: NextApiResponse, accessToken: string) => Promise<void>;
 
-    // return the original header if no subject token is found
-    if (!subjectToken) {
-        logger.debug('Cannot exhange subject token because it was not found.');
-        return null;
-    }
-
-    try {
-        await validateIdportenSubjectToken(subjectToken);
-
-        const tokenSet = await exchangeToken(subjectToken, audience);
-
-        if (!tokenSet?.expired() && tokenSet?.access_token) {
-            logger.debug('Returning valid access token');
-            return `Bearer ${tokenSet.access_token}`;
+export function withAuthenticatedApiRoute(handler: ApiHandler, logger: Logger = console) {
+    return async function withBearerToken(req: NextApiRequest, res: NextApiResponse) {
+        if (process.env.NODE_ENV !== 'production') {
+            logger.info('Is running locally, skipping authentication for page');
+            return await handler(req, res, 'fakeAccessToken');
         }
-    } catch (error) {
-        // Handle the error appropriately, e.g., log it or return an error response
-        if (error instanceof Error) {
-            logger.error('Error during token exchange:', error);
+        const authHeader = getAuthorizationHeader(req);
+        if (!authHeader) {
+            return res.status(401).json({ message: 'No token found in authorization header' });
+        }
+
+        const validationResult = await validateIdportenToken(authHeader);
+        if (validationResult === 'valid') {
+            return handler(req, res, extractSubjectToken(authHeader));
         } else {
-            logger.error('Error during token exchange', 'Unknown reason');
+            logger.info(
+                `Failed to validate due to: ${validationResult.errorType} ${validationResult.message}`
+            );
+            return res.status(401).json({ message: 'Not authenticated' });
         }
-    }
-    return null;
-}
-
-export function getAuthorizationToken(request: IncomingMessage) {
-    return request.headers['authorization']?.split(' ')[1];
+    };
 }

@@ -1,40 +1,14 @@
-import { RequestHandler, Request } from 'express';
-import { Logger } from './logger.js';
-import { exchangeToken } from './exchangeToken';
-import { validateIdportenSubjectToken } from './idporten.js';
+import { RequestHandler } from 'express';
+import { exchangeIdportenSubjectToken } from './idporten';
+import { setAuthorizationToken } from './header-utils';
 
 export function idportenTokenXMiddleware(audience: string): RequestHandler {
     return async (req, _res, next) => {
-        await exchangeIdportenSubjectToken(req, audience);
+        const accessToken = await exchangeIdportenSubjectToken(req, audience);
+
+        if (accessToken) {
+            setAuthorizationToken(req, accessToken);
+        }
         next();
     };
-}
-
-async function exchangeIdportenSubjectToken(
-    request: Request,
-    audience: string,
-    logger: Logger = console
-): Promise<void> {
-    const subjectToken = request.headers['authorization']?.split(' ')[1];
-
-    if (!subjectToken) {
-        return;
-    }
-
-    try {
-        await validateIdportenSubjectToken(subjectToken);
-
-        const tokenSet = await exchangeToken(subjectToken, audience);
-
-        if (!tokenSet?.expired() && tokenSet?.access_token) {
-            request.headers['authorization'] = `Bearer ${tokenSet.access_token}`;
-        }
-    } catch (error) {
-        // Handle the error appropriately, e.g., log it or return an error response
-        if (error instanceof Error) {
-            logger.error('Error during token exchange:', error);
-        } else {
-            logger.error('Error during token exchange:', 'unknown reason');
-        }
-    }
 }
