@@ -1,2 +1,2 @@
 export { idportenTokenXMiddleware } from './express.js';
-export { withAuthenticatedApiRoute } from './next.js';
+export { withAuthenticatedApiRoute, exchangeIdportenSubjectToken } from './next.js';
