@@ -18,6 +18,8 @@ jobs:
           registry-url: 'https://npm.pkg.github.com/' # Use GPR
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.READER_TOKEN }}
       - name: Run tests
         run: yarn test
       - name: Build
