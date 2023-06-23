@@ -37,3 +37,7 @@ export function withAuthenticatedApiRoute(handler: ApiHandler, logger: Logger = 
         }
     };
 }
+
+// export function withAuthenticatedProxyRoute(handler: ProxyApiHandler) {
+//     return async function (req, res) {};
+// }
