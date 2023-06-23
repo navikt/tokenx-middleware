@@ -3,7 +3,17 @@ import { extractSubjectToken, getAuthorizationHeader } from './header-utils';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Logger } from './logger';
 
-type ApiHandler = (req: NextApiRequest, res: NextApiResponse, accessToken: string) => Promise<void>;
+type ApiHandler = (
+    req: NextApiRequest,
+    res: NextApiResponse,
+    subjectToken: string
+) => Promise<unknown>;
+
+type ProxyApiHandler = (
+    req: NextApiRequest,
+    res: NextApiResponse,
+    proxyOptions: string
+) => Promise<unknown>;
 
 export function withAuthenticatedApiRoute(handler: ApiHandler, logger: Logger = console) {
     return async function withAccessToken(req: NextApiRequest, res: NextApiResponse) {
