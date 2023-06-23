@@ -6,10 +6,10 @@ import { Logger } from './logger';
 type ApiHandler = (req: NextApiRequest, res: NextApiResponse, accessToken: string) => Promise<void>;
 
 export function withAuthenticatedApiRoute(handler: ApiHandler, logger: Logger = console) {
-    return async function withBearerToken(req: NextApiRequest, res: NextApiResponse) {
+    return async function withAccessToken(req: NextApiRequest, res: NextApiResponse) {
         if (process.env.NODE_ENV !== 'production') {
-            logger.info('Is running locally, skipping authentication for page');
-            return await handler(req, res, 'fakeAccessToken');
+            logger.info('Is running locally, skipping authentication for api');
+            return await handler(req, res, 'fake-access-token');
         }
         const authHeader = getAuthorizationHeader(req);
         if (!authHeader) {
