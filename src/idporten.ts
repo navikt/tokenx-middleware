@@ -1,6 +1,6 @@
 import { Request } from 'express';
-import { Logger } from './logger';
-import { extractSubjectToken, getAuthorizationHeader } from './header-utils';
+import { Logger } from './logger.js';
+import { extractSubjectToken, getAuthorizationHeader } from './header-utils.js';
 import {
     grantTokenXOboToken,
     isInvalidTokenSet,

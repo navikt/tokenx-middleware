@@ -8,23 +8,14 @@ Looks for a valid ID-porten subject token in the autorization header, then excha
 
 In all cases `'<target-audience>'` identifies the intended audience for the resulting token, i.e. the target app you request a token for. This value must be the `client_id` of the target app using the naming scheme `<cluster>:<namespace>:<appname>` e.g. `prod-gcp:namespace1:app1`.
 
-### With Requests from the Fetch API (i.e. when using Next.js)
+### With Next.js
 ```
-import { exchangeIdportenSubjectToken } from "@navikt/tokenx-middleware";
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
- 
-export function middleware(request: NextRequest) {
-  exchangeIdportenSubjectToken(request, '<target-audience>')
-  return NextResponse.redirect(new URL('/home', request.url));
-}
-
-exchangeIdportenSubjectToken()
+TODO
 ```
 
 ### With Express:
 ```
-import { idportenTokenExchangeMiddleware } from "@navikt/tokenx-middleware";
+import { idportenTokenXMiddleware } from "@navikt/tokenx-middleware";
 
 server.use('url-to-another-nais-app', idportenTokenExchangeMiddleware('<target-audience>'));
 ```
