@@ -1,19 +1,13 @@
 import { validateIdportenToken } from '@navikt/next-auth-wonderwall';
-import { extractSubjectToken, getAuthorizationHeader } from './header-utils';
+import { extractSubjectToken, getAuthorizationHeader } from './header-utils.js';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { Logger } from './logger';
+import { Logger } from './logger.js';
 import { IncomingMessage } from 'http';
 
 type ApiHandler = (
     req: NextApiRequest,
     res: NextApiResponse,
     subjectToken: string
-) => Promise<unknown>;
-
-type ProxyApiHandler = (
-    req: NextApiRequest,
-    res: NextApiResponse,
-    proxyOptions: string
 ) => Promise<unknown>;
 
 export function withAuthenticatedApiRoute(handler: ApiHandler, logger: Logger = console) {

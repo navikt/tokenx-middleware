@@ -14,7 +14,17 @@
     "sourceType": "module"
   },
   "plugins": [
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "import"
   ],
-  "rules": { }
+  "rules": {
+    "import/extensions": [
+      "error",
+      "always",
+      {
+        "js": "always",
+        "ts": "never"
+      }
+    ]
+  }
 }
