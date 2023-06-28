@@ -34,7 +34,6 @@ export function idportenTokenXMiddleware(
             return;
         }
 
-        logger.info('token exchange successful, updating authorization header with access token');
         setAuthorizationToken(req, grantResult);
         next();
     };

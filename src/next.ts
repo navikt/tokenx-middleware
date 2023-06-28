@@ -1,17 +1,25 @@
-import { validateIdportenToken } from '@navikt/next-auth-wonderwall';
+import {
+    grantTokenXOboToken,
+    isInvalidTokenSet,
+    validateIdportenToken,
+} from '@navikt/next-auth-wonderwall';
 import { extractSubjectToken, getAuthorizationHeader } from './header-utils.js';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Logger } from './logger.js';
 import { IncomingMessage } from 'http';
 
-type ApiHandler = (
+type AuthenticatedApiHandler = (
     req: NextApiRequest,
     res: NextApiResponse,
-    subjectToken: string
+    accessToken: string
 ) => Promise<unknown>;
 
-export function withAuthenticatedApiRoute(handler: ApiHandler, logger: Logger = console) {
-    return async function withAccessToken(req: NextApiRequest, res: NextApiResponse) {
+export function withApiAuthentication(
+    handler: AuthenticatedApiHandler,
+    audience: string,
+    logger: Logger = console
+) {
+    return async function withTokenExchange(req: NextApiRequest, res: NextApiResponse) {
         if (process.env.NODE_ENV !== 'production') {
             logger.info('Is running locally, skipping authentication for api');
             return await handler(req, res, 'fake-access-token');
@@ -22,20 +30,22 @@ export function withAuthenticatedApiRoute(handler: ApiHandler, logger: Logger = 
         }
 
         const validationResult = await validateIdportenToken(authHeader);
-        if (validationResult === 'valid') {
-            return handler(req, res, extractSubjectToken(authHeader));
-        } else {
+        if (validationResult !== 'valid') {
             logger.info(
                 `Failed to validate due to: ${validationResult.errorType} ${validationResult.message}`
             );
             return res.status(401).json({ message: 'Not authenticated' });
         }
+
+        const grantResult = await grantTokenXOboToken(extractSubjectToken(authHeader), audience);
+        if (isInvalidTokenSet(grantResult)) {
+            logger.error(`TokenX failed: ${grantResult.errorType} ${grantResult.message}`);
+            return res.status(401).json({ message: 'Authentication failed' });
+        }
+
+        return handler(req, res, grantResult);
     };
 }
-
-// export function withAuthenticatedProxyRoute(handler: ProxyApiHandler) {
-//     return async function (req, res) {};
-// }
 
 /**
  * Exchanges subject token found in the authorization header with a access token for a given audience.
@@ -48,9 +58,8 @@ export async function exchangeIdportenSubjectToken(
 ): Promise<string | null> {
     const authHeader = getAuthorizationHeader(request);
 
-    // return the original header if no subject token is found
     if (!authHeader) {
-        logger.debug('Cannot exhange subject token because it was not found.');
+        logger.info('No token not found in authorization header.');
         return null;
     }
 
