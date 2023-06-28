@@ -47,29 +47,39 @@ export function withApiAuthentication(
     };
 }
 
+type TokenXResult = 'NO_AUTH_HEADER_FOUND' | 'IDPORTEN_TOKEN_INVALID' | 'TOKENX_FAILED' | string;
+
 /**
  * Exchanges subject token found in the authorization header with a access token for a given audience.
  * If the subject token is not found, or the token exchange failed, `null` will be returned.
  */
 export async function exchangeIdportenSubjectToken(
     request: IncomingMessage,
-    audience?: string,
+    audience: string,
     logger: Logger = console
-): Promise<string | null> {
+): Promise<TokenXResult> {
     const authHeader = getAuthorizationHeader(request);
 
     if (!authHeader) {
         logger.info('No token not found in authorization header.');
-        return null;
+        return 'NO_AUTH_HEADER_FOUND';
     }
 
     const validationResult = await validateIdportenToken(authHeader);
-    if (validationResult === 'valid') {
-        return extractSubjectToken(authHeader);
-    } else {
+    if (validationResult !== 'valid') {
         logger.info(
             `Failed to validate due to: ${validationResult.errorType} ${validationResult.message}`
         );
-        return null;
+        return 'IDPORTEN_TOKEN_INVALID';
     }
+
+    const validSubjectToken = extractSubjectToken(authHeader);
+
+    const grantResult = await grantTokenXOboToken(validSubjectToken, audience);
+    if (isInvalidTokenSet(grantResult)) {
+        logger.error(`TokenX failed: ${grantResult.errorType} ${grantResult.message}`);
+        return 'TOKENX_FAILED';
+    }
+
+    return grantResult;
 }
