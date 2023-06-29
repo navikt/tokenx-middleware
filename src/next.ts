@@ -47,7 +47,8 @@ export function withApiAuthentication(
     };
 }
 
-type TokenXResult = 'NO_AUTH_HEADER_FOUND' | 'IDPORTEN_TOKEN_INVALID' | 'TOKENX_FAILED' | string;
+export type TokenXError = 'NO_AUTH_HEADER_FOUND' | 'IDPORTEN_TOKEN_INVALID' | 'TOKENX_FAILED'
+type TokenXResult =  TokenXError | string;
 
 /**
  * Exchanges subject token found in the authorization header with a access token for a given audience.
