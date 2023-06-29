@@ -3,7 +3,7 @@ import {
     isInvalidTokenSet,
     validateIdportenToken,
 } from '@navikt/next-auth-wonderwall';
-import { extractSubjectToken, getAuthorizationHeader } from './header-utils.js';
+import { extractToken, getAuthorizationHeader } from './header-utils.js';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { Logger } from './logger.js';
 import { IncomingMessage } from 'http';
@@ -37,7 +37,7 @@ export function withApiAuthentication(
             return res.status(401).json({ message: 'Not authenticated' });
         }
 
-        const grantResult = await grantTokenXOboToken(extractSubjectToken(authHeader), audience);
+        const grantResult = await grantTokenXOboToken(extractToken(authHeader), audience);
         if (isInvalidTokenSet(grantResult)) {
             logger.error(`TokenX failed: ${grantResult.errorType} ${grantResult.message}`);
             return res.status(401).json({ message: 'Authentication failed' });
@@ -73,7 +73,7 @@ export async function exchangeIdportenSubjectToken(
         return 'IDPORTEN_TOKEN_INVALID';
     }
 
-    const validSubjectToken = extractSubjectToken(authHeader);
+    const validSubjectToken = extractToken(authHeader);
 
     const grantResult = await grantTokenXOboToken(validSubjectToken, audience);
     if (isInvalidTokenSet(grantResult)) {

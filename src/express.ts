@@ -1,9 +1,5 @@
 import { RequestHandler } from 'express';
-import {
-    extractSubjectToken,
-    getAuthorizationHeader,
-    setAuthorizationToken,
-} from './header-utils.js';
+import { extractToken, getAuthorizationHeader, setAuthorizationHeader } from './header-utils.js';
 import {
     grantTokenXOboToken,
     isInvalidTokenSet,
@@ -24,17 +20,20 @@ export function idportenTokenXMiddleware(
 
         const result = await validateIdportenToken(authHeader);
         if (result != 'valid') {
-            logger.info('Invalid token found in authorization header');
+            logger.info('Invalid token found in authorization header, will not do token exchange');
             return;
         }
 
-        const grantResult = await grantTokenXOboToken(extractSubjectToken(authHeader), audience);
+        const subjectToken = extractToken(authHeader);
+        const grantResult = await grantTokenXOboToken(subjectToken, audience);
         if (isInvalidTokenSet(grantResult)) {
-            logger.error(JSON.stringify(grantResult));
+            logger.error(
+                `Error in token exchange: ${grantResult.errorType} ${grantResult.message}`
+            );
             return;
         }
 
-        setAuthorizationToken(req, grantResult);
+        setAuthorizationHeader(req, grantResult);
         next();
     };
 }

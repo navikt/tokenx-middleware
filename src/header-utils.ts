@@ -4,10 +4,10 @@ export function getAuthorizationHeader(request: IncomingMessage): string | undef
     return request.headers['authorization'];
 }
 
-export function extractSubjectToken(bearerToken: string) {
+export function extractToken(bearerToken: string) {
     return bearerToken.replace('Bearer ', '');
 }
 
-export function setAuthorizationToken(request: IncomingMessage, accessToken: string): void {
+export function setAuthorizationHeader(request: IncomingMessage, accessToken: string): void {
     request.headers['authorization'] = `Bearer ${accessToken}`;
 }
