@@ -38,6 +38,7 @@ export function withApiAuthentication(
         }
 
         const grantResult = await grantTokenXOboToken(extractToken(authHeader), audience);
+
         if (isInvalidTokenSet(grantResult)) {
             logger.error(`TokenX failed: ${grantResult.errorType} ${grantResult.message}`);
             return res.status(401).json({ message: 'Authentication failed' });
@@ -47,8 +48,17 @@ export function withApiAuthentication(
     };
 }
 
-export type TokenXError = 'NO_AUTH_HEADER_FOUND' | 'IDPORTEN_TOKEN_INVALID' | 'TOKENX_FAILED'
-type TokenXResult =  TokenXError | string;
+export type TokenXError = {
+    errorType: 'NO_AUTH_HEADER_FOUND' | 'IDPORTEN_TOKEN_INVALID' | 'TOKENX_FAILED';
+    message: string;
+    error?: Error | unknown;
+};
+
+export type TokenXResult = TokenXError | string;
+
+export function isInvalidToken(tokenXResult: TokenXResult): tokenXResult is TokenXError {
+    return typeof tokenXResult !== 'string';
+}
 
 /**
  * Exchanges subject token found in the authorization header with a access token for a given audience.
@@ -63,7 +73,10 @@ export async function exchangeIdportenSubjectToken(
 
     if (!authHeader) {
         logger.info('No token not found in authorization header.');
-        return 'NO_AUTH_HEADER_FOUND';
+        return {
+            errorType: 'NO_AUTH_HEADER_FOUND',
+            message: 'No token not found in authorization header.',
+        };
     }
 
     const validationResult = await validateIdportenToken(authHeader);
@@ -71,7 +84,11 @@ export async function exchangeIdportenSubjectToken(
         logger.info(
             `Failed to validate due to: ${validationResult.errorType} ${validationResult.message}`
         );
-        return 'IDPORTEN_TOKEN_INVALID';
+        return {
+            errorType: 'IDPORTEN_TOKEN_INVALID',
+            message: validationResult.message,
+            error: validationResult.error,
+        };
     }
 
     const validSubjectToken = extractToken(authHeader);
@@ -79,7 +96,11 @@ export async function exchangeIdportenSubjectToken(
     const grantResult = await grantTokenXOboToken(validSubjectToken, audience);
     if (isInvalidTokenSet(grantResult)) {
         logger.error(`TokenX failed: ${grantResult.errorType} ${grantResult.message}`);
-        return 'TOKENX_FAILED';
+        return {
+            errorType: 'TOKENX_FAILED',
+            message: grantResult.message,
+            error: grantResult.error,
+        };
     }
 
     return grantResult;
