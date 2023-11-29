@@ -1,5 +1,8 @@
 # Token exchange middleware
 
+> [!IMPORTANT]
+> With the introduction of [navikt/next-auth-wonderwall](https://github.com/navikt/next-auth-wonderwall, solving mostly the same issues, this package is now considered deprecated. 
+
 A simple middleware to perform [token exchange](https://doc.nais.io/security/auth/tokenx/?h=tokenx). 
 
 Looks for a valid ID-porten subject token in the autorization header, then exchanges it for an access token valid only for a given audience. 
